@@ -1,0 +1,33 @@
+"UserLocalConfigStore"
+{
+	"Licenses"
+	{
+		"4704690"		"3200000004000000ff95cd0cdeadbeef"
+		"228980"		"3200000004000000ff95cd0ccafef00d"
+	}
+	"Software"
+	{
+		"Valve"
+		{
+			"Steam"
+			{
+				"apps"
+				{
+					"4704690"
+					{
+						"LastPlayed"		"1782831723"
+						"Playtime"		"78"
+						"cloud"
+						{
+							"last_sync_state"		"synchronized"
+						}
+					}
+					"228980"
+					{
+						"LastPlayed"		"1700000000"
+					}
+				}
+			}
+		}
+	}
+}
