@@ -39,6 +39,22 @@ on_err() {
   printf "Send Alec this file so he can see what happened:\n  %s\n" "$LOG"
 }
 
+# Echo the absolute clock skew in seconds versus an HTTPS Date header, or -1 if
+# internet time couldn't be read. No sudo and no NTP (UDP 123 is often
+# firewalled); port 443 is what we download over anyway. -k lets us still read
+# the header even if the clock is off far enough to fail TLS date validation.
+# LC_ALL=C so the always-English HTTP date parses regardless of the Mac's locale.
+clock_skew_seconds() {
+  local hdr server srv loc skew
+  hdr="$(curl -ksI --max-time 10 https://www.apple.com 2>/dev/null | grep -i '^date:' | head -1 || true)"
+  [[ -n "$hdr" ]] || { echo -1; return; }
+  server="${hdr#*: }"; server="${server%$'\r'}"
+  srv="$(LC_ALL=C date -jf '%a, %d %b %Y %H:%M:%S %Z' "$server" +%s 2>/dev/null || echo 0)"
+  [[ "$srv" != "0" ]] || { echo -1; return; }
+  loc="$(date +%s)"; skew=$(( loc - srv )); [[ $skew -lt 0 ]] && skew=$(( -skew ))
+  echo "$skew"
+}
+
 # ---- preflight ------------------------------------------------------------
 preflight() {
   say "Checking this Mac"
@@ -58,6 +74,26 @@ preflight() {
   fi
 
   ok "Mac looks good: $(sysctl -n machdep.cpu.brand_string), macOS $(sw_vers -productVersion), ${free_gb} GB free, admin user."
+
+  # Steam signs its login tokens with the current time. A wrong clock shows up
+  # in the game as "failed user authentication / token not found (user not
+  # signed in)" and blocks Steam Cloud sync. Catch it here, no password needed:
+  # we only measure the skew, and if it's off we send the user to Settings to
+  # turn on automatic time (that toggle is what needs admin, not us).
+  say "Checking the clock (a wrong clock breaks Steam sign-in)"
+  local skew; skew="$(clock_skew_seconds)"
+  if [[ "$skew" -lt 0 ]]; then
+    warn "Couldn't reach the internet to check the clock; continuing. If sign-in later fails, turn on System Settings > General > Date & Time > \"Set time and date automatically\"."
+  else
+    while [[ "$skew" -ge 60 ]]; do
+      warn "Your Mac's clock is off by about ${skew} seconds. This will break Steam sign-in."
+      open "x-apple.systempreferences:com.apple.Date-Time-Settings.extension" 2>/dev/null || true
+      pause_for "Turn ON \"Set time and date automatically\" (System Settings > General > Date & Time), wait a few seconds for the clock to correct, then press Return."
+      skew="$(clock_skew_seconds)"
+      [[ "$skew" -lt 0 ]] && { warn "Lost the internet connection; continuing without re-checking the clock."; break; }
+    done
+    [[ "$skew" -ge 0 ]] && ok "Clock looks correct (within ${skew}s of internet time)."
+  fi
 }
 
 # ---- rosetta + whisky -----------------------------------------------------
