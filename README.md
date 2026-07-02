@@ -2,7 +2,7 @@
 
 **How to play [MECCHA CHAMELEON](https://store.steampowered.com/app/4704690/) on a Mac, with one command.**
 
-MECCHA CHAMELEON is a Windows-only game. This installer gets it running on Apple Silicon Macs automatically: it sets up [Whisky](https://github.com/frankea/Whisky) (an open-source Windows compatibility layer), installs Steam inside it, enables the right graphics translation (DXMT), and applies the one tweak the game needs to launch. No CrossOver licence, no Homebrew, no terminal expertise required.
+MECCHA CHAMELEON is a Windows-only game. This installer gets it running on Apple Silicon Macs automatically: it sets up [Whisky](https://github.com/frankea/Whisky) (an open-source Windows compatibility layer), installs Steam inside it, enables the right graphics translation (DXMT), and applies the one tweak the game needs to launch.
 
 You still need to buy the game on Steam. This installer just sets up the copy you own to run on a Mac.
 
